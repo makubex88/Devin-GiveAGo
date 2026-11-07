@@ -54,7 +54,7 @@ function App() {
           {result && (
             <>
               <ParseSummary result={result} />
-              <ErrorList errors={result.errors} onSelectLine={setSelectedLine} />
+              <ErrorList errors={result.errors} segmentLines={new Set(result.segments.map((s) => s.lineNumber))} onSelectLine={setSelectedLine} />
               <SegmentList segments={result.segments} errors={result.errors} selectedLine={selectedLine} />
             </>
           )}

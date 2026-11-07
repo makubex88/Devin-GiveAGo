@@ -3,10 +3,11 @@ import { fieldLabel } from './fieldLabel'
 
 interface ErrorListProps {
   errors: ParseError[]
+  segmentLines: ReadonlySet<number>
   onSelectLine: (lineNumber: number) => void
 }
 
-export function ErrorList({ errors, onSelectLine }: ErrorListProps) {
+export function ErrorList({ errors, segmentLines, onSelectLine }: ErrorListProps) {
   if (errors.length === 0) {
     return (
       <section className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -42,7 +43,7 @@ export function ErrorList({ errors, onSelectLine }: ErrorListProps) {
                 <div className="text-slate-800">{error.message}</div>
               </div>
               {location &&
-                (lineNumber !== null ? (
+                (lineNumber !== null && segmentLines.has(lineNumber) ? (
                   <button type="button" className="text-xs text-indigo-600 hover:underline" onClick={() => onSelectLine(lineNumber)}>
                     {location}
                   </button>
