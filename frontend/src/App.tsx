@@ -28,8 +28,9 @@ function App() {
       setResult(null)
       setCheckedMessage(null)
       const detail = error instanceof Error ? ` (${error.message})` : ''
-      if (error instanceof ParseRequestError && error.status === 400) {
-        setRequestError(`We couldn't check this message because it is too long. The limit is 1,000,000 characters; please paste a single, shorter message.${detail}`)
+      if (error instanceof ParseRequestError && (error.status === 400 || error.status === 413)) {
+        const reason = error.detail ?? 'It may be too long.'
+        setRequestError(`We couldn't check this message. ${reason} Please paste a single, shorter message.${detail}`)
       } else {
         setRequestError(`We couldn't check the message because the checking service didn't respond. Please make sure it is running and try again.${detail}`)
       }
