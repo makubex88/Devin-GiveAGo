@@ -254,18 +254,18 @@ const dateFields = new Set([
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export function formatHl7DateTime(value: string): string | null {
-  const match = /^(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?(?:\.\d{1,4})?([+-]\d{4})?$/.exec(value)
+  const match = /^(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\.\d{1,4})?([+-]\d{4})?$/.exec(value)
   if (!match) {
     return null
   }
-  const [, year, month, day, hour, minute, second, zone]: (string | undefined)[] = match
+  const [, year, month, day, hour, minute, second, fraction, zone]: (string | undefined)[] = match
   const outOfRange = (part: string | undefined, min: number, max: number) => part !== undefined && (Number(part) < min || Number(part) > max)
   if (outOfRange(month, 1, 12) || outOfRange(day, 1, 31) || outOfRange(hour, 0, 23) || outOfRange(minute, 0, 59) || outOfRange(second, 0, 59)) {
     return null
   }
   let text = month === undefined ? `${year}` : `${day === undefined ? '' : `${Number(day)} `}${months[Number(month) - 1]} ${year}`
   if (hour !== undefined) {
-    text += ` at ${hour}:${minute ?? '00'}${second === undefined ? '' : `:${second}`}`
+    text += ` at ${hour}:${minute ?? '00'}${second === undefined ? '' : `:${second}${fraction ?? ''}`}`
   }
   if (zone !== undefined) {
     text += ` (UTC${zone.slice(0, 3)}:${zone.slice(3)})`
