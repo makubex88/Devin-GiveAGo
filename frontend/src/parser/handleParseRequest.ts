@@ -1,4 +1,4 @@
-import { parseHl7 } from './hl7Parser'
+import { parseHl7 } from './hl7Parser.js'
 
 // Lower than the C# API's 1,000,000 because Vercel caps function responses at 4.5 MB.
 export const maxMessageLength = 50_000
