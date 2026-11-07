@@ -312,9 +312,12 @@ export function describeField(segmentId: string, field: Field): FieldDescription
   }
 
   const table = codeTables[key]
-  const meaning = table?.[first?.[0]?.value ?? '']
-  if (meaning) {
-    return { ...none, text: `${meaning} (${first?.[0]?.value})` }
+  if (table) {
+    const codes = field.repetitions.map((r) => r.components[0]?.value ?? '')
+    const meanings = codes.map((code) => table[code])
+    if (meanings.every((m) => m !== undefined)) {
+      return { ...none, text: meanings.map((m, i) => `${m} (${codes[i]})`).join(', ') }
+    }
   }
 
   const isComposite = field.repetitions.length > 1 || field.repetitions.some((r) => r.components.length > 1)
