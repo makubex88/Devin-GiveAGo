@@ -89,7 +89,9 @@ function SegmentCard({ segment, errors, isSelected }: SegmentCardProps) {
 }
 
 function FieldRow({ segmentId, field, isFlagged }: { segmentId: string; field: Field; isFlagged: boolean }) {
-  const isComposite = field.repetitions.length > 1 || field.repetitions.some((r) => r.components.length > 1)
+  const isComposite =
+    field.repetitions.length > 1 ||
+    field.repetitions.some((r) => r.components.length > 1 || r.components.some((c) => c.subcomponents.length > 1))
 
   return (
     <tr className={isFlagged ? 'bg-rose-50' : undefined}>
