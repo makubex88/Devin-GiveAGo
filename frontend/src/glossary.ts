@@ -1,5 +1,5 @@
 // Plain-language names for HL7 v2 sections, fields and standard code tables (HL7 v2.5.1).
-import type { Field, Hl7ParseErrorCode, Hl7ParseErrorSeverity } from './types/hl7'
+import type { Field, Hl7ParseErrorCode, Hl7ParseErrorSeverity, Segment } from './types/hl7'
 
 export interface SectionInfo {
   name: string
@@ -103,11 +103,13 @@ const fieldNames: Record<string, FieldNames | undefined> = {
     2: ['Order number (requester)', 'The order number from the system that placed the order'],
     3: ['Order number (performer)', 'The order number from the system doing the work, e.g. the lab'],
     4: 'Test requested',
+    5: ['Priority (older field)', 'How urgent the test is'],
     6: 'Requested date and time',
     7: 'Date and time collected',
     16: 'Ordering provider',
     22: 'Date and time results were reported',
     25: 'Result status',
+    27: ['Timing and priority', 'When and how urgently the test should be done'],
   },
   OBX: {
     1: ['Position in list', 'e.g. 1 for the first section of this kind'],
@@ -155,6 +157,7 @@ const partNames: Record<string, PartNames | undefined> = {
   'OBR-16': person,
   'OBR-4': coded,
   'OBX-3': coded,
+  'OBR-27': { 1: 'Quantity', 2: 'How often', 3: 'How long', 4: 'Start', 5: 'End', 6: 'Priority' },
 }
 
 type CodeTable = Record<string, string | undefined>
@@ -168,6 +171,30 @@ const resultStatus: CodeTable = {
   I: 'Pending',
   D: 'Deleted',
   W: 'Posted in error',
+}
+
+const priority: CodeTable = {
+  S: 'Urgent – STAT, do it immediately',
+  A: 'As soon as possible',
+  R: 'Routine',
+  P: 'Before surgery',
+  C: 'Call back with results',
+  T: 'Timing critical',
+  PRN: 'As needed',
+}
+
+const componentCodeTables: Record<string, Record<number, CodeTable | undefined> | undefined> = {
+  'OBR-27': { 6: priority },
+}
+
+export function isStatRequest(segment: Segment): boolean {
+  if (segment.id !== 'OBR') {
+    return false
+  }
+  const fieldAt = (position: number) => segment.fields.find((f) => f.position === position)
+  const oldPriority = fieldAt(5)?.repetitions.some((r) => r.components[0]?.value === 'S') ?? false
+  const timingPriority = fieldAt(27)?.repetitions.some((r) => r.components.find((c) => c.position === 6)?.value === 'S') ?? false
+  return oldPriority || timingPriority
 }
 
 const codeTables: Record<string, CodeTable | undefined> = {
@@ -218,6 +245,7 @@ const codeTables: Record<string, CodeTable | undefined> = {
   },
   'OBX-11': resultStatus,
   'OBR-25': resultStatus,
+  'OBR-5': priority,
 }
 
 const messageTypes: Record<string, string | undefined> = {
@@ -326,13 +354,21 @@ export function describeField(segmentId: string, field: Field): FieldDescription
   }
 
   const names = partNames[key]
+  const partTables = componentCodeTables[key]
   const entries = field.repetitions
     .map((rep) =>
       rep.components
-        .map((c) => ({
-          label: names?.[c.position] ?? `Part ${c.position}`,
-          value: c.subcomponents.length > 1 ? c.subcomponents.map((s) => s.value).filter(Boolean).join(' / ') : c.value,
-        }))
+        .map((c) => {
+          const meaning = partTables?.[c.position]?.[c.value]
+          return {
+            label: names?.[c.position] ?? `Part ${c.position}`,
+            value: meaning
+              ? `${meaning} (${c.value})`
+              : c.subcomponents.length > 1
+                ? c.subcomponents.map((s) => s.value).filter(Boolean).join(' / ')
+                : c.value,
+          }
+        })
         .filter((part) => part.value.length > 0),
     )
     .filter((entry) => entry.length > 0)

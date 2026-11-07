@@ -1,4 +1,4 @@
-import { sampleWithIssues, validSample } from '../sampleMessages'
+import { sampleWithIssues, statSample, validSample } from '../sampleMessages'
 
 interface MessageInputProps {
   value: string
@@ -20,6 +20,9 @@ export function MessageInput({ value, isParsing, onChange, onParse }: MessageInp
           </button>
           <button type="button" className={`${buttonBase} bg-slate-100 text-slate-700 hover:bg-slate-200`} onClick={() => onChange(sampleWithIssues)}>
             Try an example with problems
+          </button>
+          <button type="button" className={`${buttonBase} bg-rose-50 text-rose-700 hover:bg-rose-100`} onClick={() => onChange(statSample)}>
+            Try the urgent (STAT) test story
           </button>
           <button type="button" className={`${buttonBase} bg-slate-100 text-slate-700 hover:bg-slate-200`} onClick={() => onChange('')}>
             Clear

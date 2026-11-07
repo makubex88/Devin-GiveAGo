@@ -4,12 +4,14 @@ import { ErrorList } from './components/ErrorList'
 import { MessageInput } from './components/MessageInput'
 import { ParseSummary } from './components/ParseSummary'
 import { SegmentList } from './components/SegmentList'
-import { validSample } from './sampleMessages'
+import { StoryPanel } from './components/StoryPanel'
+import { statSample, statStory, validSample } from './sampleMessages'
 import type { ParseResponse } from './types/hl7'
 
 function App() {
   const [message, setMessage] = useState(validSample)
   const [result, setResult] = useState<ParseResponse | null>(null)
+  const [checkedMessage, setCheckedMessage] = useState<string | null>(null)
   const [requestError, setRequestError] = useState<string | null>(null)
   const [isParsing, setIsParsing] = useState(false)
   const [selectedLine, setSelectedLine] = useState<number | null>(null)
@@ -21,8 +23,10 @@ function App() {
     setSelectedLine(null)
     try {
       setResult(await parseMessage(message))
+      setCheckedMessage(message)
     } catch (error) {
       setResult(null)
+      setCheckedMessage(null)
       const detail = error instanceof Error ? ` (${error.message})` : ''
       if (error instanceof ParseRequestError && error.status === 400) {
         setRequestError(`We couldn't check this message because it is too long. The limit is 1,000,000 characters; please paste a single, shorter message.${detail}`)
@@ -61,7 +65,14 @@ function App() {
               {requestError}
             </div>
           )}
-          {!result && !requestError && (
+          {message === statSample && (
+            <StoryPanel
+              steps={statStory}
+              segmentLines={new Set(checkedMessage === statSample ? (result?.segments.map((s) => s.lineNumber) ?? []) : [])}
+              onSelectLine={setSelectedLine}
+            />
+          )}
+          {!result && !requestError && message !== statSample && (
             <div className="space-y-3 rounded-lg border border-dashed border-slate-300 px-6 py-8 text-sm text-slate-600">
               <h2 className="text-base font-semibold text-slate-800">What does this do?</h2>
               <p>

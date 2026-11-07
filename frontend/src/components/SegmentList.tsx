@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { describeField, sectionInfo } from '../glossary'
+import { describeField, isStatRequest, sectionInfo } from '../glossary'
 import type { Field, ParseError, Segment } from '../types/hl7'
 import { fieldLabel } from './fieldLabel'
 
@@ -72,6 +72,9 @@ function SegmentCard({ segment, errors, isSelected, showTechnical }: SegmentCard
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-slate-900">{info.name}</span>
             <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-600">{segment.id}</span>
+            {isStatRequest(segment) && (
+              <span className="rounded-full bg-rose-600 px-2 py-0.5 text-xs font-semibold text-white">Urgent (STAT)</span>
+            )}
             <span className="text-xs text-slate-500">
               Line {segment.lineNumber}
               {showTechnical && ` · ${segment.fields.length} fields · ${segment.isSupported ? segment.segmentType : 'generic'}`}
