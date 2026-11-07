@@ -11,7 +11,7 @@ import type {
   ParseResponse,
   Repetition,
   Segment,
-} from '../types/hl7'
+} from '../types/hl7.js'
 
 const MSH = 'MSH'
 
