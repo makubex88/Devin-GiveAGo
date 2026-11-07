@@ -226,7 +226,17 @@ public sealed class Hl7Parser : IHl7Parser
         if (header.Text.Length > MshSegmentId.Length && header.Text[MshSegmentId.Length] == configured.FieldSeparator)
         {
             var declared = DeclaredEncodingCharacters(header.Text, configured.FieldSeparator);
-            if (!string.Equals(declared, configured.EncodingCharacters, StringComparison.Ordinal))
+            if (Hl7Delimiters.FromEncodingCharacters(configured.FieldSeparator, declared) is null)
+            {
+                errors.Add(new Hl7ParseError(
+                    Hl7ParseErrorCode.InvalidEncodingCharacters,
+                    Hl7ParseErrorSeverity.Error,
+                    $"MSH-2 must contain 4 or 5 encoding characters but contained {declared.Length} ('{declared}').",
+                    header.LineNumber,
+                    MshSegmentId,
+                    2));
+            }
+            else if (!string.Equals(declared, configured.EncodingCharacters, StringComparison.Ordinal))
             {
                 errors.Add(new Hl7ParseError(
                     Hl7ParseErrorCode.DelimiterMismatch,

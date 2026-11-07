@@ -136,6 +136,25 @@ public class Hl7DelimiterTests
         Assert.Equal(@"^~\&", result.Message!.Header!.GetField(2)!.Value);
     }
 
+    [Theory]
+    [InlineData("MSH|")]
+    [InlineData("MSH||SENDING_APP")]
+    [InlineData("MSH|^~|SENDING_APP")]
+    public void Parse_WithConfiguredDelimitersAndInvalidMsh2_ReportsInvalidEncodingCharactersError(string msh)
+    {
+        var options = new Hl7ParserOptions { Delimiters = Hl7Delimiters.Default };
+
+        var result = new Hl7Parser(options).Parse(msh + "\r" + SyntheticMessages.PidLine);
+
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Message);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(Hl7ParseErrorCode.InvalidEncodingCharacters, error.Code);
+        Assert.Equal(Hl7ParseErrorSeverity.Error, error.Severity);
+        Assert.Equal(1, error.LineNumber);
+        Assert.Equal(2, error.FieldPosition);
+    }
+
     [Fact]
     public void Parse_WithInvalidConfiguredDelimiters_ReturnsErrorWithoutMessage()
     {
