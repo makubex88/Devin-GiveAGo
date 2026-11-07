@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { parseMessage } from './api/parseMessage'
+import { ParseRequestError, parseMessage } from './api/parseMessage'
 import { ErrorList } from './components/ErrorList'
 import { MessageInput } from './components/MessageInput'
 import { ParseSummary } from './components/ParseSummary'
@@ -24,7 +24,11 @@ function App() {
     } catch (error) {
       setResult(null)
       const detail = error instanceof Error ? ` (${error.message})` : ''
-      setRequestError(`We couldn't check the message because the checking service didn't respond. Please make sure it is running and try again.${detail}`)
+      if (error instanceof ParseRequestError && error.status === 400) {
+        setRequestError(`We couldn't check this message because it is too long. The limit is 1,000,000 characters; please paste a single, shorter message.${detail}`)
+      } else {
+        setRequestError(`We couldn't check the message because the checking service didn't respond. Please make sure it is running and try again.${detail}`)
+      }
     } finally {
       setIsParsing(false)
     }
